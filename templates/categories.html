@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Categorías - Catálogo Ralph Wilson{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="text-center mb-5">
+        <h1>Categorías de Productos</h1>
+        <p class="lead text-muted">Explora nuestras diferentes categorías de superficies decorativas</p>
+    </div>
+    
+    {% if categories %}
+    <div class="row">
+        {% for category_name, count, sample_image in categories %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm category-card">
+                <!-- Sample Image -->
+                {% if sample_image %}
+                    <img src="{{ sample_image }}" 
+                         class="card-img-top" alt="{{ category_name }}" 
+                         style="height: 250px; object-fit: cover;">
+                {% else %}
+                    <div class="card-img-top d-flex align-items-center justify-content-center bg-primary text-white" 
+                         style="height: 250px;">
+                        <i class="fas fa-layer-group fa-5x"></i>
+                    </div>
+                {% endif %}
+                
+                <div class="card-body text-center">
+                    <h5 class="card-title">{{ category_name }}</h5>
+                    <p class="card-text text-muted">{{ count }} productos disponibles</p>
+                    
+                    <!-- Category Description -->
+                    {% if category_name == 'Laminados' %}
+                    <p class="card-text small">
+                        Laminados de alta presión con la gama más amplia de diseños y acabados.
+                    </p>
+                    {% elif category_name == 'Cuarzo' %}
+                    <p class="card-text small">
+                        Superficies de cuarzo duraderas para cocinas y baños.
+                    </p>
+                    {% elif category_name == 'Superficie Sólida' %}
+                    <p class="card-text small">
+                        Superficies sólidas con ricas texturas y diseños urbanos.
+                    </p>
+                    {% elif category_name == 'Metales Decorativos' %}
+                    <p class="card-text small">
+                        Innovadores diseños metálicos con texturas únicas.
+                    </p>
+                    {% elif category_name == 'Thinscape' %}
+                    <p class="card-text small">
+                        Superficies ultra delgadas con máxima resistencia.
+                    </p>
+                    {% else %}
+                    <p class="card-text small">
+                        Descubre productos de alta calidad en esta categoría.
+                    </p>
+                    {% endif %}
+                </div>
+                
+                <div class="card-footer bg-transparent text-center">
+                    <a href="{{ url_for('products', category=category_name) }}" 
+                       class="btn btn-primary">
+                        <i class="fas fa-eye"></i> Ver Productos
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- No Categories -->
+    <div class="text-center py-5">
+        <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+        <h3>No hay categorías disponibles</h3>
+        <p class="text-muted">Ejecuta el scraper para comenzar a llenar el catálogo.</p>
+        <a href="{{ url_for('admin') }}" class="btn btn-primary">
+            <i class="fas fa-cog"></i> Ir al Panel de Administración
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Call to Action -->
+<section class="py-5 bg-light">
+    <div class="container text-center">
+        <h3 class="mb-4">¿Buscas algo específico?</h3>
+        <p class="lead mb-4">
+            Utiliza nuestra búsqueda avanzada para encontrar el producto perfecto
+        </p>
+        <a href="{{ url_for('products') }}" class="btn btn-primary btn-lg">
+            <i class="fas fa-search"></i> Buscar Todos los Productos
+        </a>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Add hover effects to category cards
+document.querySelectorAll('.category-card').forEach(card => {
+    card.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-10px)';
+        this.style.transition = 'transform 0.3s ease';
+    });
+    
+    card.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+    });
+});
+</script>
+{% endblock %}
