@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Página No Encontrada - Catálogo Ralph Wilson{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="error-page">
+                <h1 class="display-1 text-primary">404</h1>
+                <h2 class="mb-4">Página No Encontrada</h2>
+                <p class="lead mb-4">
+                    Lo sentimos, la página que buscas no existe o ha sido movida.
+                </p>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg me-md-2">
+                        <i class="fas fa-home"></i> Ir al Inicio
+                    </a>
+                    <a href="{{ url_for('products') }}" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-search"></i> Buscar Productos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
