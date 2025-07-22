@@ -11,7 +11,14 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
 
 # Database configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///products.db')
+if not os.environ.get('DATABASE_URL'):
+    # Create instance directory if it doesn't exist
+    os.makedirs('instance', exist_ok=True)
+    # Use absolute path for SQLite
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance', 'products.db')
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize database
