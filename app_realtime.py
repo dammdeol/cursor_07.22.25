@@ -357,9 +357,101 @@ def internal_error(error):
     db.session.rollback()
     return render_template('500.html'), 500
 
+def create_sample_products():
+    """Create sample products if the database is empty"""
+    try:
+        # Check if products already exist
+        if Product.query.count() > 0:
+            print("✓ Sample products already exist, skipping initialization")
+            return
+        
+        print("Creating sample products...")
+        
+        sample_products = [
+            {
+                'name': 'Laminado Premium 7969-12',
+                'category': 'Laminados',
+                'subcategory': 'Premium',
+                'description': 'Laminado decorativo de alta calidad con acabado premium',
+                'design_group': 'Premium',
+                'color_group': 'Neutro',
+                'finish': 'Mate',
+                'surface_type': 'Laminado',
+                'material_code': '7969-12',
+                'dimensions': '305x122 cm',
+                'discontinued': False
+            },
+            {
+                'name': 'Cuarzo Natural Stone Q001',
+                'category': 'Cuarzo',
+                'subcategory': 'Natural Stone',
+                'description': 'Superficie de cuarzo con apariencia de piedra natural',
+                'design_group': 'Natural',
+                'color_group': 'Piedra',
+                'finish': 'Pulido',
+                'surface_type': 'Cuarzo',
+                'material_code': 'Q001',
+                'dimensions': '305x144 cm',
+                'discontinued': False
+            },
+            {
+                'name': 'Superficie Sólida Glacier White',
+                'category': 'Superficie Sólida',
+                'subcategory': 'Glacier',
+                'description': 'Superficie sólida de color blanco glaciar con acabado uniforme',
+                'design_group': 'Solid Colors',
+                'color_group': 'Blanco',
+                'finish': 'Mate',
+                'surface_type': 'Superficie Sólida',
+                'material_code': 'GW-001',
+                'dimensions': '365x76 cm',
+                'discontinued': False
+            },
+            {
+                'name': 'Metal Decorativo Titanium Brush',
+                'category': 'Metales Decorativos',
+                'subcategory': 'Titanium',
+                'description': 'Acabado metálico decorativo con textura cepillada de titanio',
+                'design_group': 'Metals',
+                'color_group': 'Metálico',
+                'finish': 'Cepillado',
+                'surface_type': 'Metal',
+                'material_code': 'TB-001',
+                'dimensions': '122x244 cm',
+                'discontinued': False
+            },
+            {
+                'name': 'Thinscape Urban Concrete',
+                'category': 'Thinscape',
+                'subcategory': 'Urban',
+                'description': 'Superficie ultra delgada con apariencia de concreto urbano',
+                'design_group': 'Industrial',
+                'color_group': 'Gris',
+                'finish': 'Texturizado',
+                'surface_type': 'Thinscape',
+                'material_code': 'UC-001',
+                'dimensions': '305x122 cm',
+                'discontinued': False
+            }
+        ]
+        
+        for product_data in sample_products:
+            product = Product(**product_data)
+            db.session.add(product)
+        
+        db.session.commit()
+        print(f"✓ Successfully created {len(sample_products)} sample products")
+        
+    except Exception as e:
+        print(f"✗ Error creating sample products: {e}")
+        db.session.rollback()
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
+        
+        # Create sample products if database is empty
+        create_sample_products()
     
     # Run the app
     app.run(debug=True, host='0.0.0.0', port=5000)
