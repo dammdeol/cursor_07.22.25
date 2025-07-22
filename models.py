@@ -73,7 +73,6 @@ class ScrapingTimer(db.Model):
     last_run = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    discontinued = db.Column(db.Boolean, default=False)
     
     def __repr__(self):
         return f'<ScrapingTimer {self.id} - {"Enabled" if self.is_enabled else "Disabled"}>'
@@ -87,7 +86,6 @@ class ScrapingTimer(db.Model):
             'last_run': self.last_run.isoformat() if self.last_run else None,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
-            'discontinued': self.discontinued,
         }
 
 # Add discontinued field to existing Product model
