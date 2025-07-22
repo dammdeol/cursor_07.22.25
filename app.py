@@ -169,6 +169,7 @@ def api_search():
 def admin():
     """Admin dashboard"""
     stats = {
+        'discontinued_products': Product.query.filter_by(discontinued=True).count(),
         'total_products': Product.query.count(),
         'categories': db.session.query(func.count(distinct(Product.category))).scalar(),
         'last_scrape': ScrapingLog.query.order_by(ScrapingLog.start_time.desc()).first(),
@@ -283,3 +284,54 @@ if __name__ == '__main__':
     
     # Run the app
     app.run(debug=True, host='0.0.0.0', port=5000)
+
+@app.route('/products/discontinued')
+def discontinued_products():
+    """Show only discontinued products"""
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 12, type=int)
+    
+    # Query only discontinued products
+    products_pagination = Product.query.filter_by(discontinued=True).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+    
+    return render_template('products.html',
+                         products=products_pagination.items,
+                         pagination=products_pagination,
+                         current_filters={'discontinued': True},
+                         filter_options={
+                             'categories': [],
+                             'surface_types': [],
+                             'design_groups': [],
+                             'color_groups': []
+                         },
+                         show_discontinued=True)
+
+@app.route('/api/products/stats')
+def api_product_stats():
+    """API endpoint for product statistics including discontinued count"""
+    total_products = Product.query.count()
+    active_products = Product.query.filter_by(discontinued=False).count()
+    discontinued_products = Product.query.filter_by(discontinued=True).count()
+    
+    categories_stats = db.session.query(
+        Product.category,
+        func.count(Product.id).label('total'),
+        func.sum(db.case([(Product.discontinued == True, 1)], else_=0)).label('discontinued')
+    ).group_by(Product.category).all()
+    
+    return jsonify({
+        'total_products': total_products,
+        'active_products': active_products,
+        'discontinued_products': discontinued_products,
+        'categories': [
+            {
+                'name': cat[0],
+                'total': cat[1],
+                'discontinued': cat[2] or 0,
+                'active': cat[1] - (cat[2] or 0)
+            }
+            for cat in categories_stats
+        ]
+    })

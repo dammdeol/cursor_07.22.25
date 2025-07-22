@@ -88,7 +88,7 @@
             <div class="row">
                 {% for product in products %}
                 <div class="col-md-6 col-xl-4 mb-4">
-                    <div class="card h-100 shadow-sm product-card">
+                    <div class="card h-100 shadow-sm product-card{% if product.discontinued %} discontinued-product{% endif %}">
                         <!-- Product Image -->
                         {% if product.local_image_path %}
                             <img src="{{ url_for('static', filename=product.local_image_path) }}" 
@@ -111,6 +111,13 @@
                             
                             <div class="mb-2">
                                 <small class="text-muted">
+                            {% if product.discontinued %}
+                            <div class="mb-2">
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-exclamation-triangle"></i> DESCONTINUADO
+                                </span>
+                            </div>
+                            {% endif %}
                                     <i class="fas fa-tag"></i> {{ product.category }}
                                 </small>
                             </div>
@@ -118,6 +125,13 @@
                             {% if product.material_code %}
                             <div class="mb-2">
                                 <small class="text-muted">
+                            {% if product.discontinued %}
+                            <div class="mb-2">
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-exclamation-triangle"></i> DESCONTINUADO
+                                </span>
+                            </div>
+                            {% endif %}
                                     <i class="fas fa-barcode"></i> {{ product.material_code }}
                                 </small>
                             </div>

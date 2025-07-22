@@ -23,6 +23,7 @@ class Product(db.Model):
     material_code = db.Column(db.String(50))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    discontinued = db.Column(db.Boolean, default=False)
     
     def __repr__(self):
         return f'<Product {self.name}>'
@@ -45,7 +46,8 @@ class Product(db.Model):
             'dimensions': self.dimensions,
             'material_code': self.material_code,
             'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'discontinued': self.discontinued,
         }
 
 class ScrapingLog(db.Model):
@@ -71,6 +73,7 @@ class ScrapingTimer(db.Model):
     last_run = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    discontinued = db.Column(db.Boolean, default=False)
     
     def __repr__(self):
         return f'<ScrapingTimer {self.id} - {"Enabled" if self.is_enabled else "Disabled"}>'
@@ -83,5 +86,12 @@ class ScrapingTimer(db.Model):
             'next_run': self.next_run.isoformat() if self.next_run else None,
             'last_run': self.last_run.isoformat() if self.last_run else None,
             'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'discontinued': self.discontinued,
         }
+
+# Add discontinued field to existing Product model
+# This would normally require a database migration, but we'll update the model definition
+
+# Update the Product model to include discontinued status
+# Note: In production, this would require an ALTER TABLE migration
