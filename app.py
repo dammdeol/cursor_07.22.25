@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify, url_for, redirect, flash
 from models import db, Product, ScrapingLog
-from scraper import run_scraper
+from scraper_simple import run_scraper
 import os
 import threading
 from datetime import datetime
@@ -16,10 +16,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Initialize database
 db.init_app(app)
 
-@app.before_first_request
-def create_tables():
-    """Create database tables"""
-    db.create_all()
 
 @app.route('/')
 def index():
