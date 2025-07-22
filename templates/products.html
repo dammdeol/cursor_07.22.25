@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block title %}Productos - Catálogo Ralph Wilson{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <!-- Sidebar Filters -->
+        <div class="col-lg-3 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-filter"></i> Filtros
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('products') }}">
+                        <!-- Search -->
+                        <div class="mb-3">
+                            <label for="search" class="form-label">Buscar</label>
+                            <input type="text" class="form-control" id="search" name="search" 
+                                   value="{{ current_filters.search }}" placeholder="Nombre, código...">
+                        </div>
+                        
+                        <!-- Category -->
+                        {% if filter_options.categories %}
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Categoría</label>
+                            <select class="form-select" id="category" name="category">
+                                <option value="">Todas las categorías</option>
+                                {% for cat in filter_options.categories %}
+                                <option value="{{ cat }}" {% if current_filters.category == cat %}selected{% endif %}>
+                                    {{ cat }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Surface Type -->
+                        {% if filter_options.surface_types %}
+                        <div class="mb-3">
+                            <label for="surface_type" class="form-label">Tipo de Superficie</label>
+                            <select class="form-select" id="surface_type" name="surface_type">
+                                <option value="">Todos los tipos</option>
+                                {% for type in filter_options.surface_types %}
+                                <option value="{{ type }}" {% if current_filters.surface_type == type %}selected{% endif %}>
+                                    {{ type }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Aplicar Filtros
+                            </button>
+                            <a href="{{ url_for('products') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Limpiar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Products Grid -->
+        <div class="col-lg-9">
+            <!-- Results Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    {% if current_filters.search %}
+                        Resultados para "{{ current_filters.search }}"
+                    {% elif current_filters.category %}
+                        {{ current_filters.category }}
+                    {% else %}
+                        Todos los Productos
+                    {% endif %}
+                </h2>
+                
+                <!-- Results Count -->
+                <span class="text-muted">{{ pagination.total }} productos</span>
+            </div>
+            
+            <!-- Products -->
+            {% if products %}
+            <div class="row">
+                {% for product in products %}
+                <div class="col-md-6 col-xl-4 mb-4">
+                    <div class="card h-100 shadow-sm product-card">
+                        <!-- Product Image -->
+                        {% if product.local_image_path %}
+                            <img src="{{ url_for('static', filename=product.local_image_path) }}" 
+                                 class="card-img-top" alt="{{ product.name }}" 
+                                 style="height: 250px; object-fit: cover;">
+                        {% elif product.image_url %}
+                            <img src="{{ product.image_url }}" 
+                                 class="card-img-top" alt="{{ product.name }}" 
+                                 style="height: 250px; object-fit: cover;">
+                        {% else %}
+                            <div class="card-img-top d-flex align-items-center justify-content-center bg-light" 
+                                 style="height: 250px;">
+                                <i class="fas fa-image fa-3x text-muted"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Product Info -->
+                        <div class="card-body">
+                            <h6 class="card-title">{{ product.name }}</h6>
+                            
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-tag"></i> {{ product.category }}
+                                </small>
+                            </div>
+                            
+                            {% if product.material_code %}
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-barcode"></i> {{ product.material_code }}
+                                </small>
+                            </div>
+                            {% endif %}
+                            
+                            {% if product.description %}
+                            <p class="card-text small">
+                                {{ product.description[:150] }}{% if product.description|length > 150 %}...{% endif %}
+                            </p>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Card Footer -->
+                        <div class="card-footer bg-transparent">
+                            <div class="d-grid">
+                                <a href="{{ url_for('product_detail', product_id=product.id) }}" 
+                                   class="btn btn-primary">
+                                    <i class="fas fa-eye"></i> Ver Detalles
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if pagination.pages > 1 %}
+            <nav aria-label="Paginación de productos">
+                <ul class="pagination justify-content-center">
+                    {% if pagination.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('products', page=pagination.prev_num, **current_filters) }}">
+                            <i class="fas fa-chevron-left"></i> Anterior
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for page_num in pagination.iter_pages() %}
+                        {% if page_num %}
+                            {% if page_num != pagination.page %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('products', page=page_num, **current_filters) }}">
+                                    {{ page_num }}
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if pagination.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('products', page=pagination.next_num, **current_filters) }}">
+                            Siguiente <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+            {% else %}
+            <!-- No Products Found -->
+            <div class="text-center py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h3>No se encontraron productos</h3>
+                <p class="text-muted">
+                    Intenta ajustar tus filtros o buscar con términos diferentes.
+                </p>
+                <a href="{{ url_for('products') }}" class="btn btn-primary">
+                    Ver Todos los Productos
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Add hover effects to product cards
+document.querySelectorAll('.product-card').forEach(card => {
+    card.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-5px)';
+        this.style.transition = 'transform 0.3s ease';
+    });
+    
+    card.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+    });
+});
+
+// Auto-submit form on filter change
+document.querySelectorAll('select[name]').forEach(select => {
+    select.addEventListener('change', function() {
+        this.form.submit();
+    });
+});
+</script>
+{% endblock %}

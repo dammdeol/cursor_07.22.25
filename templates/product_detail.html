@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} - Catálogo Ralph Wilson{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Inicio</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('products') }}">Productos</a></li>
+            {% if product.category %}
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('products', category=product.category) }}">{{ product.category }}</a>
+            </li>
+            {% endif %}
+            <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Product Image -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                {% if product.local_image_path %}
+                    <img src="{{ url_for('static', filename=product.local_image_path) }}" 
+                         class="card-img-top" alt="{{ product.name }}" 
+                         style="height: 500px; object-fit: cover;">
+                {% elif product.image_url %}
+                    <img src="{{ product.image_url }}" 
+                         class="card-img-top" alt="{{ product.name }}" 
+                         style="height: 500px; object-fit: cover;">
+                {% else %}
+                    <div class="card-img-top d-flex align-items-center justify-content-center bg-light" 
+                         style="height: 500px;">
+                        <i class="fas fa-image fa-5x text-muted"></i>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Product Details -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h1 class="card-title h3 mb-3">{{ product.name }}</h1>
+                    
+                    <!-- Category Badge -->
+                    <div class="mb-3">
+                        <span class="badge bg-primary fs-6">
+                            <i class="fas fa-tag"></i> {{ product.category }}
+                        </span>
+                    </div>
+                    
+                    <!-- Description -->
+                    {% if product.description %}
+                    <div class="mb-4">
+                        <h5>Descripción</h5>
+                        <p class="text-muted">{{ product.description }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Specifications -->
+                    <div class="mb-4">
+                        <h5>Especificaciones</h5>
+                        <div class="row g-3">
+                            {% if product.material_code %}
+                            <div class="col-md-6">
+                                <div class="spec-item">
+                                    <strong class="text-muted d-block">Código de Material</strong>
+                                    <span>{{ product.material_code }}</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if product.surface_type %}
+                            <div class="col-md-6">
+                                <div class="spec-item">
+                                    <strong class="text-muted d-block">Tipo de Superficie</strong>
+                                    <span>{{ product.surface_type }}</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if product.design_group %}
+                            <div class="col-md-6">
+                                <div class="spec-item">
+                                    <strong class="text-muted d-block">Grupo de Diseño</strong>
+                                    <span>{{ product.design_group }}</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if product.color_group %}
+                            <div class="col-md-6">
+                                <div class="spec-item">
+                                    <strong class="text-muted d-block">Grupo de Color</strong>
+                                    <span>{{ product.color_group }}</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if product.finish %}
+                            <div class="col-md-6">
+                                <div class="spec-item">
+                                    <strong class="text-muted d-block">Acabado</strong>
+                                    <span>{{ product.finish }}</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if product.dimensions %}
+                            <div class="col-md-6">
+                                <div class="spec-item">
+                                    <strong class="text-muted d-block">Dimensiones</strong>
+                                    <span>{{ product.dimensions }}</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="d-grid gap-2">
+                        {% if product.product_url %}
+                        <a href="{{ product.product_url }}" target="_blank" class="btn btn-primary btn-lg">
+                            <i class="fas fa-external-link-alt"></i> Ver en Sitio Oficial
+                        </a>
+                        {% endif %}
+                        
+                        <button class="btn btn-outline-secondary" onclick="window.history.back()">
+                            <i class="fas fa-arrow-left"></i> Volver
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Product Meta -->
+                <div class="card-footer bg-light">
+                    <small class="text-muted">
+                        <i class="fas fa-clock"></i> 
+                        Agregado el {{ product.created_at.strftime('%d/%m/%Y') if product.created_at else 'N/A' }}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Related Products -->
+    {% if related_products %}
+    <div class="mt-5">
+        <h3 class="mb-4">Productos Relacionados</h3>
+        <div class="row">
+            {% for related in related_products %}
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="card h-100 shadow-sm product-card">
+                    {% if related.local_image_path %}
+                        <img src="{{ url_for('static', filename=related.local_image_path) }}" 
+                             class="card-img-top" alt="{{ related.name }}" 
+                             style="height: 200px; object-fit: cover;">
+                    {% elif related.image_url %}
+                        <img src="{{ related.image_url }}" 
+                             class="card-img-top" alt="{{ related.name }}" 
+                             style="height: 200px; object-fit: cover;">
+                    {% else %}
+                        <div class="card-img-top d-flex align-items-center justify-content-center bg-light" 
+                             style="height: 200px;">
+                            <i class="fas fa-image fa-2x text-muted"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="card-body">
+                        <h6 class="card-title">{{ related.name }}</h6>
+                        <p class="card-text text-muted small">{{ related.category }}</p>
+                    </div>
+                    
+                    <div class="card-footer bg-transparent">
+                        <a href="{{ url_for('product_detail', product_id=related.id) }}" 
+                           class="btn btn-outline-primary btn-sm w-100">
+                            Ver Detalles
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Add hover effects to related product cards
+document.querySelectorAll('.product-card').forEach(card => {
+    card.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-5px)';
+        this.style.transition = 'transform 0.3s ease';
+    });
+    
+    card.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+    });
+});
+
+// Image modal functionality
+document.querySelector('.card-img-top').addEventListener('click', function() {
+    if (this.src) {
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1050;
+            cursor: pointer;
+        `;
+        
+        const img = document.createElement('img');
+        img.src = this.src;
+        img.style.cssText = `
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        `;
+        
+        modal.appendChild(img);
+        document.body.appendChild(modal);
+        
+        modal.addEventListener('click', function() {
+            document.body.removeChild(modal);
+        });
+    }
+});
+</script>
+{% endblock %}

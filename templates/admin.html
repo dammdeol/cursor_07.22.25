@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block title %}Administración - Catálogo Ralph Wilson{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-cog"></i> Panel de Administración
+            </h1>
+        </div>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title">Productos Totales</h5>
+                            <h2 class="mb-0">{{ stats.total_products }}</h2>
+                        </div>
+                        <div class="ms-3">
+                            <i class="fas fa-box-open fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title">Categorías</h5>
+                            <h2 class="mb-0">{{ stats.categories }}</h2>
+                        </div>
+                        <div class="ms-3">
+                            <i class="fas fa-list fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title">Último Scraping</h5>
+                            <p class="mb-0">
+                                {% if stats.last_scrape %}
+                                    {{ stats.last_scrape.start_time.strftime('%d/%m/%Y %H:%M') }}
+                                {% else %}
+                                    Nunca
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="ms-3">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title">Estado</h5>
+                            <p class="mb-0">
+                                {% if stats.last_scrape %}
+                                    {{ stats.last_scrape.status.title() }}
+                                {% else %}
+                                    Inactivo
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="ms-3">
+                            <i class="fas fa-chart-line fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Actions -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-download"></i> Scraping de Datos
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Ejecuta el scraper para obtener productos desde ralphwilson.com.mx
+                    </p>
+                    <form method="POST" action="{{ url_for('start_scraping') }}" class="d-inline">
+                        <button type="submit" class="btn btn-primary" id="scrapeBtn">
+                            <i class="fas fa-play"></i> Iniciar Scraping
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-trash"></i> Gestión de Datos
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Limpiar todos los productos de la base de datos
+                    </p>
+                    <form method="POST" action="{{ url_for('clear_data') }}" class="d-inline" 
+                          onsubmit="return confirm('¿Estás seguro de que quieres eliminar todos los productos?')">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Limpiar Datos
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Scraping Logs -->
+    {% if stats.recent_logs %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history"></i> Historial de Scraping
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Inicio</th>
+                                    <th>Fin</th>
+                                    <th>Estado</th>
+                                    <th>Productos</th>
+                                    <th>Errores</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in stats.recent_logs %}
+                                <tr>
+                                    <td>{{ log.id }}</td>
+                                    <td>{{ log.start_time.strftime('%d/%m/%Y %H:%M') if log.start_time else 'N/A' }}</td>
+                                    <td>{{ log.end_time.strftime('%d/%m/%Y %H:%M') if log.end_time else 'En progreso' }}</td>
+                                    <td>
+                                        {% if log.status == 'completed' %}
+                                            <span class="badge bg-success">Completado</span>
+                                        {% elif log.status == 'running' %}
+                                            <span class="badge bg-primary">Ejecutándose</span>
+                                        {% elif log.status == 'failed' %}
+                                            <span class="badge bg-danger">Fallido</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ log.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ log.products_scraped or 0 }}</td>
+                                    <td>
+                                        {% if log.errors %}
+                                            <button class="btn btn-sm btn-outline-danger" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#errorModal{{ log.id }}">
+                                                Ver Errores
+                                            </button>
+                                            
+                                            <!-- Error Modal -->
+                                            <div class="modal fade" id="errorModal{{ log.id }}" tabindex="-1">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title">Errores del Scraping #{{ log.id }}</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <pre class="text-danger">{{ log.errors }}</pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">Sin errores</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Auto-refresh page every 30 seconds if scraping is running
+{% if stats.last_scrape and stats.last_scrape.status == 'running' %}
+setTimeout(function() {
+    location.reload();
+}, 30000);
+{% endif %}
+
+// Disable scrape button and show loading state
+document.getElementById('scrapeBtn').addEventListener('click', function() {
+    this.disabled = true;
+    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Iniciando...';
+});
+</script>
+{% endblock %}
