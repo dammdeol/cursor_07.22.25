@@ -1,0 +1,460 @@
+{% extends "base.html" %}
+
+{% block title %}Productos {% if use_realtime %}Real-Time{% else %}Cache{% endif %} - Catálogo Ralph Wilson{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Real-Time Indicator -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="alert {% if use_realtime %}alert-success{% else %}alert-info{% endif %} d-flex align-items-center">
+                <div class="flex-grow-1">
+                    {% if use_realtime %}
+                        <i class="fas fa-broadcast-tower"></i> 
+                        <strong>Modo Tiempo Real</strong> - Datos directos desde ralphwilson.com.mx
+                    {% else %}
+                        <i class="fas fa-database"></i> 
+                        <strong>Modo Cache</strong> - Datos almacenados localmente
+                    {% endif %}
+                </div>
+                <div>
+                    <a href="{{ url_for('products', realtime='true' if not use_realtime else 'false') }}" 
+                       class="btn btn-sm {% if use_realtime %}btn-outline-light{% else %}btn-outline-primary{% endif %}">
+                        <i class="fas fa-{% if use_realtime %}database{% else %}broadcast-tower{% endif %}"></i>
+                        Cambiar a {% if use_realtime %}Cache{% else %}Tiempo Real{% endif %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Sidebar Filters -->
+        <div class="col-lg-3 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header {% if use_realtime %}bg-success{% else %}bg-primary{% endif %} text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-filter"></i> Filtros
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('products') }}">
+                        <input type="hidden" name="realtime" value="{{ 'true' if use_realtime else 'false' }}">
+                        
+                        <!-- Search -->
+                        <div class="mb-3">
+                            <label for="search" class="form-label">Buscar</label>
+                            <input type="text" class="form-control" id="search" name="search" 
+                                   value="{{ current_filters.search }}" placeholder="Nombre, código...">
+                        </div>
+                        
+                        <!-- Category -->
+                        {% if filter_options.categories %}
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Categoría</label>
+                            <select class="form-select" id="category" name="category">
+                                <option value="">Todas las categorías</option>
+                                {% for cat in filter_options.categories %}
+                                <option value="{{ cat }}" {% if current_filters.category == cat %}selected{% endif %}>
+                                    {{ cat }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Show Discontinued -->
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="show_discontinued" 
+                                       name="show_discontinued" value="true" 
+                                       {% if current_filters.show_discontinued %}checked{% endif %}>
+                                <label class="form-check-label" for="show_discontinued">
+                                    <i class="fas fa-exclamation-triangle text-danger"></i>
+                                    Solo Descontinuados
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn {% if use_realtime %}btn-success{% else %}btn-primary{% endif %}">
+                                <i class="fas fa-search"></i> Aplicar Filtros
+                            </button>
+                            <a href="{{ url_for('products', realtime='true' if use_realtime else 'false') }}" 
+                               class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Limpiar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Real-Time Stats -->
+            {% if use_realtime %}
+            <div class="card shadow-sm mt-3">
+                <div class="card-body text-center">
+                    <h6 class="card-title">Estado de Conexión</h6>
+                    <div id="connectionIndicator">
+                        <i class="fas fa-spinner fa-spin text-warning"></i>
+                        <small class="d-block text-muted">Verificando...</small>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Products Grid -->
+        <div class="col-lg-9">
+            <!-- Results Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    {% if current_filters.search %}
+                        Resultados para "{{ current_filters.search }}"
+                    {% elif current_filters.category %}
+                        {{ current_filters.category }}
+                    {% elif current_filters.show_discontinued %}
+                        Productos Descontinuados
+                    {% else %}
+                        Todos los Productos
+                    {% endif %}
+                    {% if use_realtime %}
+                        <span class="badge bg-success ms-2">LIVE</span>
+                    {% endif %}
+                </h2>
+                
+                <!-- Results Count -->
+                <span class="text-muted">
+                    {{ pagination.total }} productos
+                    {% if use_realtime %}
+                        <i class="fas fa-broadcast-tower text-success" title="Datos en tiempo real"></i>
+                    {% else %}
+                        <i class="fas fa-database text-primary" title="Datos en cache"></i>
+                    {% endif %}
+                </span>
+            </div>
+            
+            <!-- Loading Indicator for Real-Time -->
+            {% if use_realtime %}
+            <div id="loadingIndicator" class="text-center py-3 mb-3" style="display: none;">
+                <div class="spinner-border text-success" role="status">
+                    <span class="visually-hidden">Cargando datos en tiempo real...</span>
+                </div>
+                <p class="text-muted mt-2">Conectando con ralphwilson.com.mx...</p>
+            </div>
+            {% endif %}
+            
+            <!-- Products -->
+            {% if products %}
+            <div class="row" id="productsContainer">
+                {% for product in products %}
+                <div class="col-md-6 col-xl-4 mb-4">
+                    <div class="card h-100 shadow-sm product-card{% if product.get('discontinued') %} discontinued-product{% endif %}">
+                        <!-- Real-Time Badge -->
+                        {% if use_realtime %}
+                        <div class="position-absolute top-0 start-0 m-2">
+                            <span class="badge bg-success">
+                                <i class="fas fa-wifi"></i> LIVE
+                            </span>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Discontinued Badge -->
+                        {% if product.get('discontinued') %}
+                        <div class="position-absolute top-0 end-0 m-2">
+                            <span class="badge bg-danger">
+                                <i class="fas fa-exclamation-triangle"></i> DESCONTINUADO
+                            </span>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Product Image -->
+                        {% if product.get('image_url') %}
+                            <img src="{{ product.image_url }}" 
+                                 class="card-img-top" alt="{{ product.get('name', 'Producto') }}" 
+                                 style="height: 250px; object-fit: cover;">
+                        {% else %}
+                            <div class="card-img-top d-flex align-items-center justify-content-center bg-light" 
+                                 style="height: 250px;">
+                                <i class="fas fa-image fa-3x text-muted"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Product Info -->
+                        <div class="card-body">
+                            <h6 class="card-title">{{ product.get('name', 'Sin nombre') }}</h6>
+                            
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-tag"></i> {{ product.get('category', 'Sin categoría') }}
+                                </small>
+                            </div>
+                            
+                            {% if product.get('material_code') %}
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-barcode"></i> {{ product.material_code }}
+                                </small>
+                            </div>
+                            {% endif %}
+                            
+                            {% if product.get('description') %}
+                            <p class="card-text small">
+                                {{ product.description[:150] }}{% if product.description|length > 150 %}...{% endif %}
+                            </p>
+                            {% endif %}
+                            
+                            <!-- Data Source Indicator -->
+                            <div class="mb-2">
+                                <small class="badge bg-light text-dark">
+                                    {% if use_realtime %}
+                                        <i class="fas fa-broadcast-tower text-success"></i> Tiempo Real
+                                    {% else %}
+                                        <i class="fas fa-database text-primary"></i> Cache Local
+                                    {% endif %}
+                                    {% if product.get('last_updated') %}
+                                        - {{ product.last_updated[:16] }}
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <!-- Card Footer -->
+                        <div class="card-footer bg-transparent">
+                            <div class="d-grid">
+                                {% if use_realtime and product.get('product_url') %}
+                                    <button class="btn btn-success" onclick="loadProductRealtime('{{ product.product_url }}')">
+                                        <i class="fas fa-satellite-dish"></i> Ver Detalles Live
+                                    </button>
+                                {% elif product.get('id') %}
+                                    <a href="{{ url_for('product_detail', product_id=product.id) }}" 
+                                       class="btn btn-primary">
+                                        <i class="fas fa-eye"></i> Ver Detalles
+                                    </a>
+                                {% else %}
+                                    <button class="btn btn-outline-secondary" disabled>
+                                        <i class="fas fa-info-circle"></i> Información Limitada
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if pagination.pages > 1 %}
+            <nav aria-label="Paginación de productos">
+                <ul class="pagination justify-content-center">
+                    {% if pagination.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('products', page=pagination.prev_num, realtime='true' if use_realtime else 'false', **current_filters) }}">
+                            <i class="fas fa-chevron-left"></i> Anterior
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for page_num in pagination.iter_pages() %}
+                        {% if page_num %}
+                            {% if page_num != pagination.page %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('products', page=page_num, realtime='true' if use_realtime else 'false', **current_filters) }}">
+                                    {{ page_num }}
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if pagination.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('products', page=pagination.next_num, realtime='true' if use_realtime else 'false', **current_filters) }}">
+                            Siguiente <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+            {% else %}
+            <!-- No Products Found -->
+            <div class="text-center py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h3>No se encontraron productos</h3>
+                <p class="text-muted">
+                    {% if use_realtime %}
+                        No hay productos disponibles en el sitio web en este momento.
+                    {% else %}
+                        No hay productos en el cache local. Intenta con el modo tiempo real.
+                    {% endif %}
+                </p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <a href="{{ url_for('products', realtime='true' if not use_realtime else 'false') }}" 
+                       class="btn btn-primary">
+                        Cambiar a {% if use_realtime %}Cache{% else %}Tiempo Real{% endif %}
+                    </a>
+                    {% if use_realtime %}
+                    <a href="{{ url_for('admin') }}" class="btn btn-success">
+                        Iniciar Scraping
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Real-Time Product Modal -->
+<div class="modal fade" id="realtimeProductModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-satellite-dish"></i> Producto en Tiempo Real
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="realtimeProductContent">
+                <div class="text-center">
+                    <div class="spinner-border text-success" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Obteniendo datos en tiempo real...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Real-time connection monitoring
+{% if use_realtime %}
+function updateConnectionStatus() {
+    const indicator = document.getElementById('connectionIndicator');
+    
+    fetch('/api/products/realtime?limit=1')
+        .then(response => response.json())
+        .then(data => {
+            if (data.products !== undefined) {
+                indicator.innerHTML = `
+                    <i class="fas fa-wifi text-success"></i>
+                    <small class="d-block text-success">Conectado</small>
+                `;
+            } else {
+                throw new Error('No data');
+            }
+        })
+        .catch(error => {
+            indicator.innerHTML = `
+                <i class="fas fa-wifi text-danger"></i>
+                <small class="d-block text-danger">Sin conexión</small>
+            `;
+        });
+}
+
+// Update connection status every 30 seconds
+updateConnectionStatus();
+setInterval(updateConnectionStatus, 30000);
+{% endif %}
+
+// Load product in real-time
+function loadProductRealtime(productUrl) {
+    const modal = new bootstrap.Modal(document.getElementById('realtimeProductModal'));
+    const content = document.getElementById('realtimeProductContent');
+    
+    // Reset content
+    content.innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-2">Obteniendo datos en tiempo real desde ralphwilson.com.mx...</p>
+        </div>
+    `;
+    
+    modal.show();
+    
+    // Fetch real-time product data
+    fetch(`/product/realtime?url=${encodeURIComponent(productUrl)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            content.innerHTML = `
+                <div class="row">
+                    <div class="col-md-4">
+                        ${data.image_url ? 
+                            `<img src="${data.image_url}" class="img-fluid rounded" alt="${data.name}">` :
+                            '<div class="bg-light p-5 text-center rounded"><i class="fas fa-image fa-3x text-muted"></i></div>'
+                        }
+                    </div>
+                    <div class="col-md-8">
+                        <h4>${data.name}</h4>
+                        ${data.discontinued ? '<span class="badge bg-danger mb-2"><i class="fas fa-exclamation-triangle"></i> DESCONTINUADO</span>' : ''}
+                        <p class="text-muted">${data.description || 'Sin descripción disponible'}</p>
+                        
+                        <div class="row g-2">
+                            ${data.category ? `<div class="col-6"><strong>Categoría:</strong><br>${data.category}</div>` : ''}
+                            ${data.material_code ? `<div class="col-6"><strong>Código:</strong><br>${data.material_code}</div>` : ''}
+                            ${data.design_group ? `<div class="col-6"><strong>Diseño:</strong><br>${data.design_group}</div>` : ''}
+                            ${data.color_group ? `<div class="col-6"><strong>Color:</strong><br>${data.color_group}</div>` : ''}
+                            ${data.finish ? `<div class="col-6"><strong>Acabado:</strong><br>${data.finish}</div>` : ''}
+                            ${data.dimensions ? `<div class="col-6"><strong>Dimensiones:</strong><br>${data.dimensions}</div>` : ''}
+                        </div>
+                        
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-clock"></i> Actualizado: ${new Date().toLocaleString()}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        })
+        .catch(error => {
+            content.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Error al cargar producto</strong><br>
+                    ${error.message}
+                </div>
+            `;
+        });
+}
+
+// Auto-submit form on filter change
+document.querySelectorAll('select[name], input[type="checkbox"]').forEach(element => {
+    element.addEventListener('change', function() {
+        this.form.submit();
+    });
+});
+
+// Add hover effects to product cards
+document.querySelectorAll('.product-card').forEach(card => {
+    card.addEventListener('mouseenter', function() {
+        if (!this.classList.contains('discontinued-product')) {
+            this.style.transform = 'translateY(-5px)';
+            this.style.transition = 'transform 0.3s ease';
+        }
+    });
+    
+    card.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+    });
+});
+</script>
+{% endblock %}
