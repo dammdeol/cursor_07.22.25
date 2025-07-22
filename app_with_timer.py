@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 from flask import Flask, render_template, request, jsonify, url_for, redirect, flash
 from models import db, Product, ScrapingLog, ScrapingTimer
 from scraper_simple import run_scraper
@@ -285,4 +283,3 @@ if __name__ == '__main__':
     
     # Run the app
     app.run(debug=True, host='0.0.0.0', port=5000)
->>>>>>> 823f1d1 (Add automatic timer for scheduled web scraping with admin controls)
