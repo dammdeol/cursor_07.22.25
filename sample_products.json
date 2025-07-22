@@ -1,0 +1,102 @@
+{
+  "sample_products": [
+    {
+      "name": "Laminado Premium 7969-12",
+      "category": "Laminados",
+      "subcategory": "Premium",
+      "description": "Laminado decorativo de alta calidad con acabado premium",
+      "image_url": null,
+      "local_image_path": null,
+      "product_url": null,
+      "design_group": "Premium",
+      "color_group": "Neutro",
+      "finish": "Mate",
+      "surface_type": "Laminado",
+      "price": null,
+      "dimensions": "305x122 cm",
+      "material_code": "7969-12",
+      "discontinued": false
+    },
+    {
+      "name": "Cuarzo Natural Stone Q001",
+      "category": "Cuarzo",
+      "subcategory": "Natural Stone",
+      "description": "Superficie de cuarzo con apariencia de piedra natural",
+      "image_url": null,
+      "local_image_path": null,
+      "product_url": null,
+      "design_group": "Natural",
+      "color_group": "Piedra",
+      "finish": "Pulido",
+      "surface_type": "Cuarzo",
+      "price": null,
+      "dimensions": "305x144 cm",
+      "material_code": "Q001",
+      "discontinued": false
+    },
+    {
+      "name": "Superficie Sólida Glacier White",
+      "category": "Superficie Sólida",
+      "subcategory": "Glacier",
+      "description": "Superficie sólida de color blanco glaciar con acabado uniforme",
+      "image_url": null,
+      "local_image_path": null,
+      "product_url": null,
+      "design_group": "Solid Colors",
+      "color_group": "Blanco",
+      "finish": "Mate",
+      "surface_type": "Superficie Sólida",
+      "price": null,
+      "dimensions": "365x76 cm",
+      "material_code": "GW-001",
+      "discontinued": false
+    },
+    {
+      "name": "Metal Decorativo Titanium Brush",
+      "category": "Metales Decorativos",
+      "subcategory": "Titanium",
+      "description": "Acabado metálico decorativo con textura cepillada de titanio",
+      "image_url": null,
+      "local_image_path": null,
+      "product_url": null,
+      "design_group": "Metals",
+      "color_group": "Metálico",
+      "finish": "Cepillado",
+      "surface_type": "Metal",
+      "price": null,
+      "dimensions": "122x244 cm",
+      "material_code": "TB-001",
+      "discontinued": false
+    },
+    {
+      "name": "Thinscape Urban Concrete",
+      "category": "Thinscape",
+      "subcategory": "Urban",
+      "description": "Superficie ultra delgada con apariencia de concreto urbano",
+      "image_url": null,
+      "local_image_path": null,
+      "product_url": null,
+      "design_group": "Industrial",
+      "color_group": "Gris",
+      "finish": "Texturizado",
+      "surface_type": "Thinscape",
+      "price": null,
+      "dimensions": "305x122 cm",
+      "material_code": "UC-001",
+      "discontinued": false
+    }
+  ],
+  "metadata": {
+    "description": "Sample products for Ralph Wilson product catalog",
+    "version": "1.0",
+    "created_date": "2024-07-22",
+    "total_products": 5,
+    "categories": [
+      "Laminados",
+      "Cuarzo",
+      "Superficie Sólida",
+      "Metales Decorativos",
+      "Thinscape"
+    ]
+  }
+}
