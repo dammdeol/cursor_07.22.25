@@ -60,3 +60,28 @@ class ScrapingLog(db.Model):
     
     def __repr__(self):
         return f'<ScrapingLog {self.id} - {self.status}>'
+
+class ScrapingTimer(db.Model):
+    __tablename__ = 'scraping_timers'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    is_enabled = db.Column(db.Boolean, default=False)
+    interval_minutes = db.Column(db.Integer, default=60)
+    next_run = db.Column(db.DateTime)
+    last_run = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def __repr__(self):
+        return f'<ScrapingTimer {self.id} - {"Enabled" if self.is_enabled else "Disabled"}>'
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'is_enabled': self.is_enabled,
+            'interval_minutes': self.interval_minutes,
+            'next_run': self.next_run.isoformat() if self.next_run else None,
+            'last_run': self.last_run.isoformat() if self.last_run else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
